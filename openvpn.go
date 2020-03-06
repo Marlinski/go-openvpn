@@ -1,19 +1,12 @@
 package openvpn
 
-import "os/exec"
+import (
+	"github.com/Marlinski/go-openvpn/events"
+)
 
 // Run the openvpn
-func (c *Config) Run(channel chan *Event) error {
-	// the communication channel with openvpn
-	mgr, err := newManager()
-	if err != nil {
-		return err
-	}
-
-	mgr.run(channel)
-	mgr.updateConfig(c)
-
-	// run openvpn, from now on everything will be managed by the manager
-	exec.Command("openvpn", c.params...)
-	return nil
+func (c Config) Run(upstream chan events.OpenvpnEvent) Controller {
+	mgr := c.NewManager(upstream)
+	mgr.ActionManagerBootstrap()
+	return newController(mgr)
 }
