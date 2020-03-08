@@ -9,7 +9,7 @@ import (
 
 // env
 var (
-	inOutRegexp      = regexp.MustCompile("([^,]+),([^,]+)$")
+	inOutRegexp      = regexp.MustCompile("([0-9]+),([0-9]+)$")
 	ErrNotAByteCount = fmt.Errorf("bytecount parsing error")
 	MessageBytecount = "BYTECOUNT"
 )
@@ -18,24 +18,24 @@ func init() {
 	messageParsers[MessageBytecount] = parseByteCount
 }
 
-// ByteCountMessage returns bytes in/out
-type ByteCountMessage struct {
+// BytecountMessage returns bytes in/out
+type BytecountMessage struct {
 	In  int64
 	Out int64
 }
 
 // Cmd implements Message Cmd interface
-func (m ByteCountMessage) Cmd() string {
+func (m BytecountMessage) Cmd() string {
 	return MessageBytecount
 }
 
 // String implements Message String interface
-func (m ByteCountMessage) String() string {
+func (m BytecountMessage) String() string {
 	return fmt.Sprintf("cmd=%s in=%d out=%d", MessageBytecount, m.In, m.Out)
 }
 
 func parseByteCount(cmd string, str string, reader *textproto.Reader) (Message, error) {
-	ret := ByteCountMessage{}
+	ret := BytecountMessage{}
 
 	// read all env
 	match := inOutRegexp.FindStringSubmatch(str)

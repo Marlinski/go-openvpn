@@ -11,7 +11,7 @@ type StateMgmtWaitConnect struct {
 
 func newStateMgmtWaitConnect(mgr *Manager) *StateMgmtWaitConnect {
 	ret := StateMgmtWaitConnect{
-		newStateMgmtBasic(mgr),
+		newStateMgmtBasic(mgr, MgmtStateCodeWaitConnect),
 	}
 
 	// state event map
@@ -21,16 +21,17 @@ func newStateMgmtWaitConnect(mgr *Manager) *StateMgmtWaitConnect {
 	return &ret
 }
 
-func (s *StateMgmtWaitConnect) state() MgmtStateCode {
-	return MgmtStateCodeWaitConnect
-}
-
 func (s *StateMgmtWaitConnect) onEnter() error {
-	go s.mgr.ActionListenManagementSocket()
-	err := s.mgr.StartOpenVPN()
+	err := s.mgr.ActionListenManagementSocket()
+	if err != nil {
+		return err
+	}
+
+	err = s.mgr.ActionStartOpenVPN()
 	if err != nil {
 		// this will trigger onListenError
 		s.mgr.conn.socket.Close()
+		return err
 	}
 	return nil
 }

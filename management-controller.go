@@ -1,6 +1,10 @@
 package openvpn
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Marlinski/go-openvpn/messages"
+)
 
 // Err
 var (
@@ -21,8 +25,8 @@ func newController(mgr *Manager) Controller {
 
 // GetOpenVpnEnv return the value of a specific environment variable
 func (c Controller) GetOpenVpnEnv(vpnEnv string) (string, error) {
-	c.m.mux.Lock()
-	defer c.m.mux.Unlock()
+	c.m.statemux.Lock()
+	defer c.m.statemux.Unlock()
 
 	if c.m.state.state() != MgmtStateCodeConnected {
 		return "", ErrTunnelNotConnected
@@ -34,4 +38,9 @@ func (c Controller) GetOpenVpnEnv(vpnEnv string) (string, error) {
 		return "", ErrEnvironmentNotFound
 	}
 	return value, nil
+}
+
+// SendMgmtCommand send management command
+func (c Controller) SendMgmtCommand(cmd string) (messages.Response, error) {
+	return c.m.ActionSendCmd(cmd)
 }

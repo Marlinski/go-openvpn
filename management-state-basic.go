@@ -21,18 +21,24 @@ type SignalHandler func(s signals.Signal) error
 // - events
 type StateMgmtBasic struct {
 	mgr            *Manager
+	stateName      MgmtStateCode
 	eventHandlers  map[events.EventCode]EventHandler
 	msgHandlers    map[string]MsgHandler
 	signalHandlers map[signals.Signal]SignalHandler
 }
 
-func newStateMgmtBasic(mgr *Manager) StateMgmtBasic {
+func newStateMgmtBasic(mgr *Manager, state MgmtStateCode) StateMgmtBasic {
 	return StateMgmtBasic{
 		mgr:            mgr,
+		stateName:      state,
 		msgHandlers:    make(map[string]MsgHandler),
 		eventHandlers:  make(map[events.EventCode]EventHandler),
 		signalHandlers: make(map[signals.Signal]SignalHandler),
 	}
+}
+
+func (s *StateMgmtBasic) state() MgmtStateCode {
+	return s.stateName
 }
 
 func (s *StateMgmtBasic) onEnter() error {

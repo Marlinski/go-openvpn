@@ -7,11 +7,7 @@ type StateMgmtDisconnected struct {
 
 func newStateMgmtDisconnected(mgr *Manager) *StateMgmtDisconnected {
 	ret := StateMgmtDisconnected{
-		newStateMgmtBasic(mgr),
+		newStateMgmtBasic(mgr, MgmtStateCodeDisconnected),
 	}
 	return &ret
-}
-
-func (s *StateMgmtDisconnected) state() MgmtStateCode {
-	return MgmtStateCodeDisconnected
 }

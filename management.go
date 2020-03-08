@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"sync"
 
+	"github.com/Marlinski/go-openvpn/messages"
+
 	"github.com/op/go-logging"
 	"github.com/rs/xid"
 
@@ -19,28 +21,24 @@ type Manager struct {
 	config          Config                    // openvpn config
 	cmd             *exec.Cmd                 // unix command
 	state           ManagerState              // current state
+	statemux        sync.Mutex                // mutex
 	upstreamChannel chan events.OpenvpnEvent  // upstream event receiver
 	eventChannel    chan events.InternalEvent // event channel
 	log             *logging.Logger           // debug logger
 	conn            ManagerInterface          // interface
-	mux             sync.Mutex                // mutex
-}
-
-// StateMachine machine
-type StateMachine struct {
-	idle         *StateMgmtIdle
-	listen       *StateMgmtWaitConnect
-	connected    *StateMgmtConnected
-	disconnected *StateMgmtDisconnected
 }
 
 // ManagerInterface holds the parameters for the interface
+// Message received from the interface are routed through the eventChannel and processed by the manager state
+// Response to command send to the interface are routed to the respChannel and processed by the mux holder
 type ManagerInterface struct {
-	unixSocket string            // unix socket path
-	socket     net.Listener      // socket to accept connection from openvpn mgmt
-	fd         net.Conn          // actual communication socket with openvpn management
-	reader     *bufio.Reader     // buffer reader
-	tp         *textproto.Reader // text reader
+	unixSocket  string                 // unix socket path
+	socket      net.Listener           // socket to accept connection from openvpn mgmt
+	fd          net.Conn               // actual communication socket with openvpn management
+	reader      *bufio.Reader          // buffer reader
+	tp          *textproto.Reader      // text reader
+	respMux     sync.Mutex             // read-response mutex
+	respChannel chan messages.Response // Response channel
 }
 
 // NewManager Creates a new manager ready to accept a connection

@@ -2,7 +2,7 @@ package events
 
 import "fmt"
 
-// EventTunnelUpDown is thrown when the openvpn tunnel is up
+// EventTunnelUp is thrown when the openvpn tunnel is up
 type EventTunnelUp struct {
 	OpenvpnEvent
 	Env map[string]string // environment variable

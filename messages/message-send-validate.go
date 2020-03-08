@@ -3,21 +3,27 @@ package messages
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // todo: validate all the commands
 var (
 	allCommands = map[string]string{
-		"auth-retry": "",
+		"bytecount": "bytecount ([0-9]+)$",                         // bytecount n            : Show bytes in/out, update every n secs (0=off).
+		"help":      "help$",                                       // help                   : Print this message.
+		"hold":      "hold( (on|off|release))?$",                   // hold [on|off|release]  : Set/show hold flag to on/off state, or
+		"status":    "status( [0-9]+)?",                            // status [n]             : Show current daemon status info using format #n./
+		"signal":    "signal( (SIGHUP|SIGTERM|SIGUSR1|SIGUSR2))?$", // signal s               : Send signal s to daemon (s = SIGHUP|SIGTERM|SIGUSR1|SIGUSR2)
+		"version":   "version$",                                    // version                : Show current version number.
+		"username":  "username type ([^\r\n]+)$",                   // username type u        : Enter username u for a queried OpenVPN username.
+		"password":  "password type ([^\r\n]+)$",                   // password type p        : Enter password p for a queried OpenVPN password.
+		"pid":       "pid",                                         // pid                    : Show process ID of the current OpenVPN process.
 	}
 
 // auth-retry t           : Auth failure retry mode (none,interact,nointeract).
-// bytecount n            : Show bytes in/out, update every n secs (0=off).
 // echo [on|off] [N|all]  : Like log, but only show messages in echo buffer.
 // exit|quit              : Close management session.
 // forget-passwords       : Forget passwords entered so far.
-// help                   : Print this message.
-// hold [on|off|release]  : Set/show hold flag to on/off state, or
 //                          release current hold and start tunnel.
 // kill cn                : Kill the client instance(s) having common name cn.
 // kill IP:port           : Kill the client instance connecting from IP:port.
@@ -30,10 +36,8 @@ var (
 // needstr type action    : Enter confirmation for NEED-STR request of 'type',
 //                          where action is reply string.
 // net                    : (Windows only) Show network info and routing table.
-// password type p        : Enter password p for a queried OpenVPN password.
 // remote type [host port] : Override remote directive, type=ACCEPT|MOD|SKIP.
 // proxy type [host port flags] : Enter dynamic proxy server info.
-// pid                    : Show process ID of the current OpenVPN process.
 // pkcs11-id-count        : Get number of available PKCS#11 identities.
 // pkcs11-id-get index    : Get PKCS#11 identity at index.
 // client-auth CID KID    : Authenticate client-id/key-id CID/KID (MULTILINE)
@@ -47,33 +51,23 @@ var (
 //                          Enter signature base64 on subsequent lines followed by END
 // certificate            : Enter a client certificate in response to >NEED-CERT challenge
 //                          Enter certificate base64 on subsequent lines followed by END
-// signal s               : Send signal s to daemon,
-//                          s = SIGHUP|SIGTERM|SIGUSR1|SIGUSR2.
 // state [on|off] [N|all] : Like log, but show state history.
-// status [n]             : Show current daemon status info using format #n.
 // test n                 : Produce n lines of output for testing/debugging.
-// username type u        : Enter username u for a queried OpenVPN username.
 // verb [n]               : Set log verbosity level to n, or show if n is absent.
-// version                : Show current version number.
-)
-
-// Response from openvpn management
-type Response struct {
-	Success bool
-	Msg     string
-}
-
-var (
-	cmdRegexp      = regexp.MustCompile("([^\r\n]+)$")
-	responseRegexp = regexp.MustCompile("([^\r\n]+):(.*)$")
 )
 
 // ValidateCommand before sending to the openvpn mgmt interface
 func ValidateCommand(command string) (string, error) {
-	// check that command is correct
-	match := cmdRegexp.FindStringSubmatch(command)
-	if match == nil {
+	args := strings.Split(command, " ")
+
+	cmdRegexp, ok := allCommands[args[0]]
+	if !ok {
 		return "", fmt.Errorf("not a command")
+	}
+
+	// check that command is correct
+	if match, _ := regexp.MatchString(cmdRegexp, command); !match {
+		return "", fmt.Errorf("not a %s command", args[0])
 	}
 
 	// add the semicolon

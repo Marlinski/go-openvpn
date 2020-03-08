@@ -11,17 +11,13 @@ type StateMgmtIdle struct {
 
 func newStateMgmtIdle(mgr *Manager) *StateMgmtIdle {
 	ret := StateMgmtIdle{
-		newStateMgmtBasic(mgr),
+		newStateMgmtBasic(mgr, MgmtStateCodeIdle),
 	}
 
 	// state event map
 	ret.signalHandlers[signals.SigStart] = ret.onSigStart
 
 	return &ret
-}
-
-func (s *StateMgmtIdle) state() MgmtStateCode {
-	return MgmtStateCodeIdle
 }
 
 func (s *StateMgmtIdle) onSigStart(sig signals.Signal) error {

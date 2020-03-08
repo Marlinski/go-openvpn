@@ -6,18 +6,18 @@ import (
 	"github.com/Marlinski/go-openvpn/messages"
 )
 
-// EventByteCount is thrown when a new reading is available on in/out
-type EventByteCount struct {
+// EventBytecount is thrown when a new reading is available on in/out
+type EventBytecount struct {
 	OpenvpnEvent
-	messages.ByteCountMessage
+	messages.BytecountMessage
 }
 
 // Code returns the event code.
-func (e EventByteCount) Code() EventCode {
-	return OpenvpnEventByteCode
+func (e EventBytecount) Code() EventCode {
+	return OpenvpnEventBytecount
 }
 
 // String implements Message String interface
-func (e EventByteCount) String() string {
+func (e EventBytecount) String() string {
 	return fmt.Sprintf("in=%d out=%d", e.In, e.Out)
 }
