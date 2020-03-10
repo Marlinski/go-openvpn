@@ -1,7 +1,6 @@
 package messages
 
 import (
-	"log"
 	"net/textproto"
 	"regexp"
 	"strings"
@@ -33,7 +32,7 @@ func ParseResponse(reply string, reader *textproto.Reader) (Response, error) {
 	// read each line until an "END"
 	line := reply
 	for {
-		log.Printf("<<< %s", line)
+		//log.Printf("<<< %s", line)
 		if strings.HasSuffix(line, "END") {
 			return Response{
 				Success: true,
