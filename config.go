@@ -1,6 +1,10 @@
 package openvpn
 
 import (
+	"bufio"
+	"os"
+	"regexp"
+
 	"github.com/op/go-logging"
 )
 
@@ -10,6 +14,9 @@ type Config struct {
 	// the ID for this openvpn config
 	// it will be used as a token in log
 	id string
+
+	// the filename holding the config
+	file string
 
 	// if set to true, will log the stdout and stderr of openvpn
 	logLevel logging.Level
@@ -32,7 +39,8 @@ func NewConfig(id string) *Config {
 // LoadConfig sets the openvpn config
 func LoadConfig(id string, file string) *Config {
 	return &Config{
-		id: id,
+		id:   id,
+		file: file,
 		params: []string{
 			"--config",
 			file,
@@ -65,4 +73,31 @@ func (c *Config) Set(key string, values ...string) *Config {
 		c.params = append(c.params, v)
 	}
 	return c
+}
+
+// GetRemote returns the remote endpoint address
+func (c *Config) GetRemote() (string, error) {
+	file, err := os.Open(c.file)
+	defer file.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	remoteRegExp := regexp.MustCompile("remote ([\\S]+).*")
+	reader := bufio.NewReader(file)
+	for {
+		line, err := reader.ReadString('\n')
+
+		if err != nil {
+			break
+		}
+
+		match := remoteRegExp.FindStringSubmatch(line)
+		if len(match) == 2 {
+			return match[1], nil
+		}
+	}
+
+	return "", err
 }
